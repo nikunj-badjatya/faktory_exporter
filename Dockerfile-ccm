@@ -1,0 +1,23 @@
+# Use the golang base image
+FROM golang:1.20.5-alpine3.17 as base
+
+# Set environment variable
+ENV APP_NAME faktory-prometheus-exporter
+ENV CMD_PATH faktory_exporter.go
+
+# Create a directory for the application
+WORKDIR /go/src/$APP_NAME
+
+# Copy the entire source code into the container
+COPY . .
+
+# Build
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -v -o /$APP_NAME $CMD_PATH
+
+# Set the executable permission
+RUN chmod +x /$APP_NAME
+
+WORKDIR /
+ENV PATH ${PATH}:/
+# Specify the command to run on container start
+CMD ["faktory-prometheus-exporter", "--faktory.url=tcp://127.0.0.1:7419", "--web.listen-address=:8889"]
